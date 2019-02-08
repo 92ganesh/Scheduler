@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#262221"
+    android:orientation="vertical"
+    tools:context="edu.somaiya.app.scheduler2.admin.AdminMain">
+
+    <RadioGroup
+        android:id="@+id/radioGroup"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="45dp">
+
+        <RadioButton
+            android:id="@+id/Create"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="2dp"
+            android:layout_weight="1"
+            android:checked="true"
+            android:text="Create Form"
+            android:textColor="@color/colorFormSelection"
+            android:textSize="20sp" />
+
+        <RadioButton
+            android:id="@+id/Live"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="30dp"
+            android:layout_weight="1"
+            android:text="View Live forms"
+            android:textColor="@color/colorFormSelection"
+            android:textSize="20sp" />
+
+        <RadioButton
+            android:id="@+id/Past"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="30dp"
+            android:layout_weight="1"
+            android:text="View Past forms"
+            android:textColor="@color/colorFormSelection"
+            android:textSize="20sp" />
+
+        <RadioButton
+            android:id="@+id/Add"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="30dp"
+            android:layout_weight="1"
+            android:text="Approve Member"
+            android:textColor="@color/colorFormSelection"
+            android:textSize="20sp" />
+
+        <RadioButton
+            android:id="@+id/Remove"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="30dp"
+            android:layout_weight="1"
+            android:text="View/Remove Member"
+            android:textColor="@color/colorFormSelection"
+            android:textSize="20sp" />
+
+        <RadioButton
+            android:id="@+id/addAdmin"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="30dp"
+            android:layout_weight="1"
+            android:text="Add Admin"
+            android:textColor="@color/colorFormSelection"
+            android:textSize="20sp" />
+
+        <RadioButton
+            android:id="@+id/removeAdmin"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="30dp"
+            android:layout_weight="1"
+            android:text="View/Remove Admin"
+            android:textColor="@color/colorFormSelection"
+            android:textSize="20sp" />
+    </RadioGroup>
+
+    <Button
+        android:id="@+id/radioSelect"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="43dp"
+        android:background="@drawable/green"
+        android:onClick="radioSelect"
+        android:text="SELECT" />
+
+</RelativeLayout>

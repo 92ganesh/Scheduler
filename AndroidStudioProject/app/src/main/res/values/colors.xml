@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#ff3300</color>
+    <color name="colorPrimaryDark">#ff5c33</color>
+    <color name="colorAccent">#10f21c</color>
+    <color name="colorFormSelection">#ffd633</color>
+    <color name="colorFill">#86f442</color>
+    <color name="colorGridlabels">#0f0f49</color>
+    <color name="colorFree">#ff0a0a</color>
+    <color name="colorAssigned">#3d0606</color>
+    <color name="colorWhite">#ffffff</color>
+    <color name="colorGray">#949393</color>
+    <color name="colorDarkGreen">#3bae2a</color>
+    <color name="colorBlack">#000000</color>
+
+
+</resources>
+
+<!--
+#418cf4
+#3F51B5
+#303F9F -->

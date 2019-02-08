@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "60800515532",
+    "firebase_url": "https://scheduler2-d5006.firebaseio.com",
+    "project_id": "scheduler2-d5006",
+    "storage_bucket": "scheduler2-d5006.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:60800515532:android:ae8b7b94e232d791",
+        "android_client_info": {
+          "package_name": "edu.somaiya.app.scheduler2"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "60800515532-mn3o86ndbdkdb7fl8hmq0up045v3tmgb.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "edu.somaiya.app.scheduler2",
+            "certificate_hash": "fc315fd5f3655d5848c76944c4dcfb1c77f9d0c8"
+          }
+        },
+        {
+          "client_id": "60800515532-4i1sng0438te8nusu3dqhrbjb0ip6tc7.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBCUINGTm1I2tI978m9WWkFwllmfRv-zMU"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "60800515532-4i1sng0438te8nusu3dqhrbjb0ip6tc7.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
