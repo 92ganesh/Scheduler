@@ -7,6 +7,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Display;
+import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.GridLayout;
@@ -25,6 +26,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 
 import edu.somaiya.app.scheduler2.GlobalVariables;
 import edu.somaiya.app.scheduler2.R;
@@ -32,10 +34,14 @@ import edu.somaiya.app.scheduler2.R;
 public class AdminGrid extends AppCompatActivity {
 
     public int gridWidth=-10,gridHeigth=-10,rows,cols;
-    Map<String,Object> formDetails;
-    String rowNames="", colNames="", csvString="", formName="";
+    public int totalSelectionAssistant,totalSelectionAssociate,totalSelectionLabAssistant,totalSelectionProfessor;
+    HashMap<String,Object> formDetails,formDetailsLab,memberListMap;
+    HashMap<String,String> memberActivityMap;
+    TreeMap<String,String> memberActivityMapSorted;
+    String rowNames="", colNames="", csvString="", groupLabelNames="", formName="";
     public DatabaseReference myRef;
     boolean isFirebaseConnected=false;
+    String[][] gridMat;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -48,66 +54,158 @@ public class AdminGrid extends AppCompatActivity {
         gridWidth=size.x;
         gridHeigth=size.y;
 
+        Log.e("grid", "cre");
 
         // get firebase instance
         FirebaseDatabase database = FirebaseDatabase.getInstance();
-        myRef = database.getReference().child(GlobalVariables.typeForm);
+//        final DatabaseReference memberListRef = database.getReference().child("membersList");
+//        memberListRef.addListenerForSingleValueEvent(new ValueEventListener() {
+//            @Override
+//            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+//                memberListMap = (HashMap<String, Object>) dataSnapshot.getValue();
+//                if(memberListMap!=null) {
+//                    gridMat = new String[memberListMap.size()+5][rows+1];
+//                }else{
+//                    gridMat = new String[5][rows+1];
+//                }
+//            }
+//            @Override
+//            public void onCancelled(@NonNull DatabaseError databaseError) {
+//                // Failed to read value
+//                Toast.makeText(getApplicationContext(),"cannot connect to database",Toast.LENGTH_SHORT).show();
+//            }
+//        });
+
+        myRef = database.getReference();
         myRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 // This method is called once with the initial value and again
                 // whenever data at this location is updated.
                 // String value = dataSnapshot.getValue(String.class);
-                Iterable<DataSnapshot> contactChildren = dataSnapshot.getChildren();
+
+                memberListMap = (HashMap<String, Object>) dataSnapshot.child("membersList").getValue();
+
+                Iterable<DataSnapshot> contactChildren = dataSnapshot.child(GlobalVariables.typeForm).getChildren();
                 for (DataSnapshot contact : contactChildren) {
                     String formId= contact.getKey();
                     if(formId.equals(GlobalVariables.currForm)){
                         rows = Integer.parseInt((String)contact.child("totalRows").getValue() );
                         cols = Integer.parseInt((String)contact.child("totalCols").getValue() );
                         formDetails = (HashMap)contact.child("formTableDetails").getValue();
+                        formDetailsLab = (HashMap)contact.child("formTableDetailsLab").getValue();
                         rowNames = (String)contact.child("rowNames").getValue();
                         colNames = (String)contact.child("colNames").getValue();
+                        groupLabelNames = (String)contact.child("groupLabelNames").getValue();
                         formName = (String)contact.child("name").getValue();
+                        memberActivityMap = (HashMap<String, String>) contact.child("memberActivity").getValue();
+                        totalSelectionAssistant = Integer.parseInt((String)contact.child("totalSelectionAssistant").getValue());
+                        totalSelectionAssociate = Integer.parseInt((String)contact.child("totalSelectionAssociate").getValue());
+                        totalSelectionLabAssistant = Integer.parseInt((String)contact.child("totalSelectionLabAssistant").getValue());
+                        totalSelectionProfessor = Integer.parseInt((String)contact.child("totalSelectionProfessor").getValue());
+//                        if(memberActivityMap!=null) {
+//                            gridMat = new String[memberActivityMap.size()+4][rows+1];
+//                        }else{
+//                            gridMat = new String[4][rows+1];
+//                        }
+                        if(memberListMap!=null) {
+                            gridMat = new String[memberListMap.size()+5][rows+1];
+                        }else{
+                            gridMat = new String[5][rows+1];
+                        }
                         makeGrid();
                     }
                 }
-
             }
-
             @Override
             public void onCancelled(DatabaseError error) {
                 // Failed to read value
                 Toast.makeText(getApplicationContext(),"cannot connect to database",Toast.LENGTH_SHORT).show();
             }
         });
-
     }
 
     public void makeGrid(){
         String[] rn = rowNames.split("!");
         String[] cn = colNames.split("!");
+        String[] gn = groupLabelNames.split("!");
+        int gridCols = rows;
 
-        csvString="";
-        addButton(0,0,"",true);    csvString+=" ,";
-
-        for(int i=1; i<=cols; i++){
-            addButton(0,i,cn[i-1],true);
-            csvString+=cn[i-1];  if(i<cols){ csvString+=" ,";}
-        }    csvString+="\n";
-        for(int i=1; i<=rows; i++){
-            addButton(i,0,rn[i-1],true);
-        }
-
-        for(int i=1; i<=rows; i++){
-            csvString+=rn[i-1]+",";
-            for(int j=1; j<=cols; j++){
-                String loc = i+","+j;
-                addButton(i,j,(String)formDetails.get(loc), false);
-                csvString+=(String)formDetails.get(loc);    if(j<cols){ csvString+=" ,";}
+        for(int i=0;i<gridMat.length;i++){
+            for(int j=0;j<gridMat[i].length;j++){
+                addButton(i,j,"",false);
+                gridMat[i][j] = "";
             }
-            csvString+="\n";
         }
 
+        addButton(0,0,"",true);
+
+        // rows contains num of slots
+        // Note:- slot are represented as columns here.
+        for(int i=1; i<=gridCols; i++){
+            addButton(0,i,gn[i-1],true);
+            addButton(1,i,rn[i-1],true);
+            gridMat[0][i] = gn[i-1];
+            gridMat[1][i] = rn[i-1];
+        }
+
+        int i=2;
+        if(memberActivityMap!=null){
+            memberActivityMapSorted=new TreeMap<>();
+            for(Map.Entry<String,String> entry: memberActivityMap.entrySet()) {
+                memberActivityMapSorted.put(entry.getKey(),entry.getValue());
+            }
+            for(Map.Entry<String,String> entry: memberActivityMapSorted.entrySet()){
+                addButton(i,0,entry.getKey(),true);
+                gridMat[i][0] = entry.getKey();
+                String[] userSelection = entry.getValue().split("!");
+                for(String each:userSelection){
+                    int colNum = Integer.parseInt( (each.split(","))[0]);
+                    addButton(i,colNum,"X",false);
+                    gridMat[i][colNum] = "X";
+                }
+                i++;
+            }
+        }
+
+        Log.e("grid", "ran");
+        boolean firstNotFilled=true;
+        // members that did not fill form
+        for(Map.Entry<String,Object> entry: memberListMap.entrySet()){
+            String userDesignation = ((HashMap<String,String>)entry.getValue()).get("designation");
+            if(memberActivityMap==null || !memberActivityMap.containsKey(entry.getKey())&&
+                    (userDesignation.equals(GlobalVariables.labAssistant)||userDesignation.equals(GlobalVariables.assistant)||
+                       userDesignation.equals(GlobalVariables.associate)||userDesignation.equals(GlobalVariables.professor)) ){
+                if(firstNotFilled){
+                    addButton(i,0,"",true);
+                    gridMat[i][0] = "";
+                    firstNotFilled=false; i++;
+                }
+                addButton(i,0,entry.getKey(),true);
+                gridMat[i][0] = entry.getKey();
+                i++;
+            }
+        }
+
+        addButton(i,0,"Total Assigned",true);
+        gridMat[i][0] = "Total Assigned";
+        for(int j=1; j<=gridCols; j++){
+            int xCount=0;
+            for(int k=2; k<i; k++) {
+                if(gridMat[k][j].equals("X")){
+                    xCount++;
+                }
+            }
+            gridMat[i][j] = xCount+"";
+            addButton(i,j,xCount+"",false);
+        }
+
+        addButton(i+1,0,"Free",true);
+        gridMat[i+1][0] = "Free";
+        for(int j=1; j<=gridCols; j++){
+            gridMat[i+1][j] = formDetails.get(j+",1")+"";
+            addButton(i+1,j,formDetails.get(j+",1")+"",false);
+        }
     }
 
     public void addButton(int r, int c,String owner,boolean NamePlates){
@@ -128,6 +226,7 @@ public class AdminGrid extends AppCompatActivity {
             } else {
                 txt.setTextColor(getResources().getColor(R.color.colorAssigned));
             }
+            txt.setGravity(Gravity.CENTER_HORIZONTAL);
         }else{
             txt.setTextColor(getResources().getColor(R.color.colorGridlabels));
         }
@@ -142,9 +241,18 @@ public class AdminGrid extends AppCompatActivity {
     }
 
     public void saveToCSV(View view){
-        Log.e("csv",csvString);
+        csvString="";
+        for(int i=0;i<gridMat.length;i++){
+            for(int j=0;j<gridMat[i].length;j++){
+                csvString+=gridMat[i][j];
+                if(i<gridMat[i].length){ csvString+=" ,";}
+            }
+            csvString+="\n";
+        }
 
-        String sdcardFolder = Environment.getExternalStorageDirectory().getAbsolutePath()+"/formName.csv";
+        Log.e("csv",csvString);
+        String sdcardFolder = Environment.getExternalStorageDirectory().getAbsolutePath()+"/"
+                            +GlobalVariables.currForm+"_"+formName+".csv";
         FileWriter sb = null;
         try {
             sb = new FileWriter(sdcardFolder);
@@ -154,6 +262,82 @@ public class AdminGrid extends AppCompatActivity {
         } catch (IOException e) {
             Log.e("AdminGrid.java",e.toString());
             Toast.makeText(getApplicationContext(),"failed to save",Toast.LENGTH_LONG).show();
+        }
+    }
+
+    public void autoAssign(View view){
+        if(memberListMap==null){
+            Toast.makeText(getApplicationContext(),"cannot connect to database",Toast.LENGTH_SHORT).show();
+        }else if(formDetails!=null){
+            String[] gn = groupLabelNames.split("!");
+            int[] freeArray = new int[gn.length];
+            for(int i=0;i<freeArray.length;i++){
+                freeArray[i] = Integer.parseInt( (String)formDetails.get((i+1)+",1"));
+            }
+
+            if(memberActivityMap!=null){
+                for(Map.Entry<String,String> entry: memberActivityMap.entrySet()){
+                    if(memberListMap.containsKey(entry.getKey())){
+                        memberListMap.remove(entry.getKey());
+                    }
+                }
+            }
+
+            for(Map.Entry<String,Object> entry: memberListMap.entrySet()){
+                String code = entry.getKey();
+                String userDesignation = ((HashMap<String,String>)entry.getValue()).get("designation");
+                int maxInTotal = 0,totalSelected=0;
+                if(userDesignation.equals(GlobalVariables.professor)){
+                    maxInTotal = totalSelectionProfessor;
+                }else  if(userDesignation.equals(GlobalVariables.associate)){
+                    maxInTotal = totalSelectionAssociate;
+                }else  if(userDesignation.equals(GlobalVariables.assistant)){
+                    maxInTotal = totalSelectionAssistant;
+                }else  if(userDesignation.equals(GlobalVariables.labAssistant)){
+                    maxInTotal = totalSelectionLabAssistant;
+                }else{
+                    maxInTotal = 0; // if any new/unknown designation has been added
+                }
+
+                Log.e("auto",code+" "+userDesignation+" "+maxInTotal );
+                boolean[] userSelection = new boolean[freeArray.length];
+                for(int i=0; i<freeArray.length&&totalSelected<maxInTotal ;i++){
+                    boolean preSlot=true,postSlot=true;
+                    if(freeArray[i]>0){
+                        if(i-1>=0&&userSelection[i-1]){
+                            if(gn[i].equals(gn[i-1])){
+                                preSlot=false;
+                            }
+                        }
+                        if(i+1<=freeArray.length&&userSelection[i+1]){
+                            if(gn[i].equals(gn[i+1])){
+                                postSlot=false;
+                            }
+                        }
+                        if(preSlot&&postSlot){
+                            userSelection[i]=true;
+                            totalSelected++;
+                        }
+                    }
+                }
+                String userSelectionStr = "";
+                Log.e("auto select",totalSelected+" "+maxInTotal);
+                if(totalSelected==maxInTotal&&maxInTotal>0){
+                    for(int i=0; i<userSelection.length;i++) {
+                        if(userSelection[i]){
+                            freeArray[i]--;
+                            formDetails.put((i+1)+",1",freeArray[i]+"");
+                            userSelectionStr+=(i+1)+",1!";
+                        }
+                    }
+                    userSelectionStr = userSelectionStr.substring(0,userSelectionStr.length()-1);
+                    myRef.child(GlobalVariables.typeForm).child(GlobalVariables.currForm).child("memberActivity").child(code).setValue(userSelectionStr);
+                    myRef.child(GlobalVariables.typeForm).child(GlobalVariables.currForm).child("formTableDetails").setValue(formDetails);
+                }
+
+            }
+        }else{
+            Toast.makeText(getApplicationContext(),"Form might have not loaded properly\ntry restarting app",Toast.LENGTH_SHORT).show();
         }
     }
 

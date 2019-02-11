@@ -13,6 +13,7 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Display;
 import android.view.View;
+import android.view.ViewConfiguration;
 import android.view.ViewTreeObserver;
 import android.widget.Button;
 import android.widget.GridLayout;
@@ -25,6 +26,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.lang.reflect.Field;
 import java.text.ParseException;
 import java.util.Date;
 import java.util.HashMap;
@@ -32,6 +34,7 @@ import java.util.HashSet;
 import java.util.Map;
 
 import edu.somaiya.app.scheduler2.GlobalVariables;
+import edu.somaiya.app.scheduler2.MainActivity;
 import edu.somaiya.app.scheduler2.R;
 import edu.somaiya.app.scheduler2.Welcome;
 import edu.somaiya.app.scheduler2.admin.AdminCreateForm;
@@ -61,7 +64,12 @@ public class UserForms extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        Intent it = new Intent(getApplicationContext(), Welcome.class);
+        Intent it;
+        if(!GlobalVariables.onEmulator){
+            it = new Intent(getApplicationContext(), Welcome.class);
+        }else{
+            it = new Intent(getApplicationContext(), MainActivity.class);
+        }
         startActivity(it);
     }
 
@@ -94,7 +102,6 @@ public class UserForms extends AppCompatActivity {
 
             gd.addView(btnTag);
         }
-
     }
 
     public void addCell(String text,final String tag, final int col, int cellSize,boolean isTitle){
@@ -148,7 +155,6 @@ public class UserForms extends AppCompatActivity {
                     firstTimeDataload=true;
                     recreate();
                 }
-
             }
 
             @Override
@@ -183,11 +189,11 @@ public class UserForms extends AppCompatActivity {
             long serverTimeMillis = System.currentTimeMillis()+GlobalVariables.serverTimeOffset;
             if(serverTimeMillis<=dueDateMillis){
                 // form is still within the due date
-                Log.e("due",formName+" within due");
+                Log.e("UserForms.java",formName+" within due");
                 return true;
             }else{
                 // form has crossed the due date
-                Log.e("due",formName+" out of due");
+                Log.e("UserForms.java",formName+" out of due");
                 HashMap<String,Object> formBackup = (HashMap<String, Object>) contact.getValue();
                 myRef.child("formPast").child(formId).setValue(formBackup);
                 myRef.child("formLive").child(formId).setValue(null);
@@ -195,11 +201,8 @@ public class UserForms extends AppCompatActivity {
             }
         } catch (ParseException e) {
             e.printStackTrace();
-            Log.e("err",e.toString());
+            Log.e("UserForms.java",e.toString());
             return false;
         }
     }
-
-
-
 }

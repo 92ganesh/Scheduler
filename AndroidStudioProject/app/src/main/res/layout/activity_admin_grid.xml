@@ -8,13 +8,25 @@
     tools:context="edu.somaiya.app.scheduler2.admin.AdminGrid"
     android:orientation="vertical">
 
-    <Button
-        android:id="@+id/button"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Save to CSV"
-        android:layout_marginBottom="10dp"
-        android:onClick="saveToCSV"/>
+        android:orientation="horizontal">
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Auto assign"
+            android:layout_marginBottom="10dp"
+            android:onClick="autoAssign"
+            android:layout_gravity="left"/>
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Save to CSV"
+            android:layout_marginBottom="10dp"
+            android:onClick="saveToCSV"
+            android:layout_gravity="right"/>
+    </LinearLayout>
 
     <ScrollView
         android:layout_width="match_parent"
@@ -33,4 +45,5 @@
 
         </HorizontalScrollView>
     </ScrollView>
+
 </LinearLayout>

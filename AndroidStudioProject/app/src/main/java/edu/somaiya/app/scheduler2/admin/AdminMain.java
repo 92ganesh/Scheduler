@@ -11,6 +11,8 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Toast;
 
+import edu.somaiya.app.scheduler2.GlobalVariables;
+import edu.somaiya.app.scheduler2.MainActivity;
 import edu.somaiya.app.scheduler2.R;
 import edu.somaiya.app.scheduler2.Welcome;
 import edu.somaiya.app.scheduler2.user.UserForms;
@@ -25,7 +27,12 @@ public class AdminMain extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        Intent it = new Intent(getApplicationContext(), Welcome.class);
+        Intent it;
+        if(!GlobalVariables.onEmulator){
+            it = new Intent(getApplicationContext(), Welcome.class);
+        }else{
+            it = new Intent(getApplicationContext(), MainActivity.class);
+        }
         startActivity(it);
     }
 

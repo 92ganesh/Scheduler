@@ -37,12 +37,12 @@ import edu.somaiya.app.scheduler2.R;
 
 public class AdminCreateForm extends AppCompatActivity {
     public DatabaseReference myRef, connectedRef ;
-    public ArrayList<Integer> rowIDs, colIDs, slotLimitIDs;
-    public int rowCount=0, colCount=0, idCount=0, gridWidth=-10,gridHeigth=-10;
+    public ArrayList<Integer> rowIDs, colIDs, slotLimitIDs,groupLabelIDs;
+    public int rowCount, colCount, idCount, gridWidth,gridHeigth,groupColNum,rowColNum,slotLimitColNum;
     private int GRID_TEXT_COLOR;
     boolean isFirebaseConnected=false;
     //form attributes
-    String formId,formName,rowNames,colNames,formDue,totalRows,totalCols,
+    String formId,formName,rowNames,colNames,groupNames,formDue,totalRows,totalCols,
             totalSelectionProfessor,totalSelectionAssociate,totalSelectionAssistant,totalSelectionLabAssistant;;
     public static Map<String, Object> formTableDetails, formTableDetailsLab, form;
 
@@ -56,8 +56,10 @@ public class AdminCreateForm extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_admin_create_form);
 
-        rowIDs=new ArrayList<>(); colIDs=new ArrayList<>(); slotLimitIDs=new ArrayList<>(); isFirebaseConnected=false;
-        formId="";rowCount=0; colCount=0; idCount=0; gridWidth=-10;gridHeigth=-10;
+        rowIDs=new ArrayList<>(); colIDs=new ArrayList<>(); slotLimitIDs=new ArrayList<>();
+        groupLabelIDs=new ArrayList<>();  isFirebaseConnected=false;
+        formId="";rowCount=0; colCount=-1; idCount=0; gridWidth=-10;gridHeigth=-10;
+        groupColNum=0;rowColNum=1;slotLimitColNum=2;
         createNotificationChannel();
         firebaseStuff();
 
@@ -70,7 +72,9 @@ public class AdminCreateForm extends AppCompatActivity {
         GRID_TEXT_COLOR = getResources().getColor(R.color.colorAssigned);
 
         addRow();
-        addCol();
+        addCol("Day");
+        addCol("Slot");
+        addCol("Limit");
 
         EditText fn = findViewById(R.id.formName);
         fn.setWidth(gridWidth/2);
@@ -84,18 +88,23 @@ public class AdminCreateForm extends AppCompatActivity {
         EditText ed = findViewById(R.id.formName);
         formName = ed.getText().toString();
 
-        rowNames="";
+        rowNames=""; groupNames="";
         for(int i=0; i<rowIDs.size(); i++){
             ed = findViewById(rowIDs.get(i));
             rowNames += ed.getText().toString();
-            if(i!=rowIDs.size()-1)
+            ed = findViewById(groupLabelIDs.get(i));
+            groupNames+=ed.getText().toString();
+            if(i!=rowIDs.size()-1){
                 rowNames+="!";
+                groupNames+="!";
+            }
+
         }
 
         colNames="";
         for(int i=0; i<colIDs.size(); i++){
-            ed = findViewById(colIDs.get(i));
-            colNames += ed.getText().toString();
+            TextView txtView = findViewById(colIDs.get(i));
+            colNames += txtView.getText().toString();
             if(i!=colIDs.size()-1)
                 colNames+="!";
         }
@@ -107,16 +116,15 @@ public class AdminCreateForm extends AppCompatActivity {
 
         formTableDetails=new HashMap<>();
         for(int i=1;i<=rowCount;i++){
-            for(int j=1;j<=colCount;j++){
-                formTableDetails.put(i+","+j,"4");
-            }
+            String slotLimit = ((EditText)findViewById(slotLimitIDs.get(i-1))).getText().toString();
+            if(slotLimit.equals("")){slotLimit="0";}
+            formTableDetails.put(i+",1",slotLimit);
         }
 
         formTableDetailsLab=new HashMap<>();
         for(Map.Entry<String,Object> entry:formTableDetails.entrySet()){
             formTableDetailsLab.put((String)entry.getKey(),Integer.parseInt((String)entry.getValue())/2 + "");
         }
-
 
         tx = findViewById(R.id.professor);  totalSelectionProfessor = tx.getText().toString();
         tx = findViewById(R.id.Associate);  totalSelectionAssociate = tx.getText().toString();
@@ -128,6 +136,7 @@ public class AdminCreateForm extends AppCompatActivity {
         form.put("name",formName);
         form.put("due",formDue);
         form.put("rowNames",rowNames);
+        form.put("groupLabelNames",groupNames);
         form.put("colNames",colNames);
         form.put("totalRows",totalRows);
         form.put("totalCols",totalCols);
@@ -246,7 +255,11 @@ public class AdminCreateForm extends AppCompatActivity {
         GridLayout gd = findViewById(R.id.createTableGrid);
         if(gd.getRowCount()>2) {
             rowCount--;
-            View re = findViewById(rowIDs.get(rowIDs.size() - 1));
+            View re = findViewById(groupLabelIDs.get(groupLabelIDs.size() - 1));
+            gd.removeView(re);
+            groupLabelIDs.remove(groupLabelIDs.size() - 1);
+
+            re = findViewById(rowIDs.get(rowIDs.size() - 1));
             gd.removeView(re);
             rowIDs.remove(rowIDs.size() - 1);
 
@@ -255,19 +268,48 @@ public class AdminCreateForm extends AppCompatActivity {
             slotLimitIDs.remove(slotLimitIDs.size() - 1);
         }
     }
-    public void subCol(){
-        GridLayout gd = findViewById(R.id.createTableGrid);
-        if(gd.getColumnCount()>2) {
-            colCount--;
-            View re = findViewById(colIDs.get(colIDs.size() - 1));
-            gd.removeView(re);
-            colIDs.remove(colIDs.size() - 1);
-        }
-    }
+//    public void subCol(){
+//        GridLayout gd = findViewById(R.id.createTableGrid);
+//        if(gd.getColumnCount()>2) {
+//            colCount--;
+//            View re = findViewById(colIDs.get(colIDs.size() - 1));
+//            gd.removeView(re);
+//            colIDs.remove(colIDs.size() - 1);
+//        }
+//    }
     public void addRow(){
-        idCount++; rowCount++;
+        rowCount++;
+
+        idCount++;
         GridLayout gd = findViewById(R.id.createTableGrid);
+
         EditText txt = new EditText(this);
+        txt.setWidth(gridWidth/6);
+        //  txt.setHeight(gridHeigth/15);
+        txt.setTextSize(20);
+        txt.setPadding(0,10,0,10);
+        txt.setBackground(getResources().getDrawable(R.drawable.border));
+        if(rowCount==1){
+            txt.setText("Day 1");
+        }else{
+            int iddd = groupLabelIDs.get(groupLabelIDs.size()-1);
+            Log.e("AdminCreate",groupLabelIDs.size()+" "+iddd);
+            String lastGroupName = ((EditText)findViewById(iddd)).getText().toString();
+            txt.setText(lastGroupName);
+        }
+        txt.setId(idCount);
+        groupLabelIDs.add(idCount);
+        txt.setTextColor(GRID_TEXT_COLOR);
+        GridLayout.LayoutParams param = new GridLayout.LayoutParams();
+        param.height = GridLayout.LayoutParams.WRAP_CONTENT;
+        param.width = GridLayout.LayoutParams.WRAP_CONTENT;
+        param.columnSpec = GridLayout.spec(groupColNum);
+        param.rowSpec = GridLayout.spec(rowCount);
+        txt.setLayoutParams(param);
+        gd.addView(txt);
+
+        idCount++;
+        txt = new EditText(this);
         txt.setWidth(gridWidth/6);
       //  txt.setHeight(gridHeigth/15);
         txt.setTextSize(20);
@@ -277,11 +319,10 @@ public class AdminCreateForm extends AppCompatActivity {
         rowIDs.add(idCount);
         txt.setText("R"+rowCount);
         txt.setTextColor(GRID_TEXT_COLOR);
-
-        GridLayout.LayoutParams param = new GridLayout.LayoutParams();
+        param = new GridLayout.LayoutParams();
         param.height = GridLayout.LayoutParams.WRAP_CONTENT;
         param.width = GridLayout.LayoutParams.WRAP_CONTENT;
-        param.columnSpec = GridLayout.spec(0);
+        param.columnSpec = GridLayout.spec(rowColNum);
         param.rowSpec = GridLayout.spec(rowCount);
         txt.setLayoutParams(param);
         gd.addView(txt);
@@ -297,22 +338,21 @@ public class AdminCreateForm extends AppCompatActivity {
         txt.setBackground(getResources().getDrawable(R.drawable.border));
         txt.setId(idCount);
         slotLimitIDs.add(idCount);
-        txt.setText("0");
+        txt.setHint("0");
         txt.setInputType(InputType.TYPE_CLASS_NUMBER);
         txt.setTextColor(GRID_TEXT_COLOR);
-
         param = new GridLayout.LayoutParams();
         param.height = GridLayout.LayoutParams.WRAP_CONTENT;
         param.width = GridLayout.LayoutParams.WRAP_CONTENT;
-        param.columnSpec = GridLayout.spec(1);
+        param.columnSpec = GridLayout.spec(slotLimitColNum);
         param.rowSpec = GridLayout.spec(rowCount);
         txt.setLayoutParams(param);
         gd.addView(txt);
     }
-    public void addCol(){
+    public void addCol(String title){
         idCount++; colCount++;
         GridLayout gd = findViewById(R.id.createTableGrid);
-        EditText txt = new EditText(this);
+        TextView txt = new TextView(this);
         txt.setMinWidth(gridWidth/6);
      //   txt.setWidth(gridWidth/6);
         txt.setHeight(gridHeigth/15);
@@ -321,7 +361,7 @@ public class AdminCreateForm extends AppCompatActivity {
         txt.setBackground(getResources().getDrawable(R.drawable.border));
         txt.setId(idCount);
         colIDs.add(idCount);
-        txt.setText("C"+colCount);
+        txt.setText(title);
         txt.setTextColor(GRID_TEXT_COLOR);
 
         GridLayout.LayoutParams param = new GridLayout.LayoutParams();

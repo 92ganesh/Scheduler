@@ -1,19 +1,15 @@
 package edu.somaiya.app.scheduler2.admin;
 
 import android.app.AlertDialog;
-import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.graphics.Point;
 import android.graphics.Typeface;
-import android.net.ConnectivityManager;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Display;
 import android.view.View;
-import android.widget.Button;
 import android.widget.GridLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -27,16 +23,13 @@ import com.google.firebase.database.ValueEventListener;
 import java.util.HashMap;
 import java.util.HashSet;
 
-import edu.somaiya.app.scheduler2.GlobalVariables;
 import edu.somaiya.app.scheduler2.R;
-import edu.somaiya.app.scheduler2.user.UserGrid;
 
 public class MemberList extends AppCompatActivity {
     public int gridWidth=-10,rowNum=-1;
     public float textSize=20;
     public DatabaseReference myRef;
     private static HashSet<String> oldMems;
-    private static HashMap<String,String> emailNameMap;
     private static String selectedMemberCode;
     boolean isFirebaseConnected=false;
 
@@ -70,7 +63,6 @@ public class MemberList extends AppCompatActivity {
 
 
         oldMems=new HashSet<>();
-        emailNameMap=new HashMap<>();
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         myRef = database.getReference().child("membersList");
 
@@ -82,11 +74,13 @@ public class MemberList extends AppCompatActivity {
                     String memId= contact.getKey();
                     if(!oldMems.contains(memId)&&(!contact.child("designation").getValue().equals("admin"))) {
                         oldMems.add(memId);
-                        String memName = (String)contact.child("code").getValue();
+                        String memCode = (String)contact.child("code").getValue();
                         String memEmail = (String)contact.child("email").getValue();
-                        emailNameMap.put(memEmail,memName);
+                        String designation = (String)contact.child("designation").getValue();
+                        String memName = (String)contact.child("name").getValue();
+                        String memMobile = (String)contact.child("mobile").getValue();
                         rowNum++;
-                        addFormRow(memName, memEmail,false);
+                        addFormRow(memCode, memName, designation, memEmail, memMobile,false);
                     }
                 }
             }
@@ -103,15 +97,18 @@ public class MemberList extends AppCompatActivity {
         Point size = new Point();
         display.getSize(size);
         gridWidth=size.x;
-        rowNum++; addFormRow("NAME","Email",true);
+        rowNum++; addFormRow("CODE","NAME","DESIGNATION","EMAIL","MOBILE",true);
         Log.e("mem","create");
 
     }
 
 
-    public void addFormRow(String name, String email, boolean isTitle){
-        addCell(name, 0, gridWidth/3,isTitle);  // Name
-        addCell(email, 1, gridWidth/3*2,isTitle);  // Due
+    public void addFormRow(String code, String name, String designation, String email, String mobile, boolean isTitle){
+        addCell(code, 0, gridWidth/4,isTitle);
+        addCell(name, 1, gridWidth/2,isTitle);
+        addCell(designation, 2, gridWidth/2,isTitle);
+        addCell(email, 3, gridWidth,isTitle);
+        addCell(mobile, 4, gridWidth/2,isTitle);
     }
 
     public void addCell(final String text, final int col, int cellSize, boolean isTitle){
@@ -121,30 +118,32 @@ public class MemberList extends AppCompatActivity {
         tx.setText(text);
         tx.setTextSize(textSize);
         tx.setWidth(cellSize);
+
         tx.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 selectedMemberCode=text;
-                if(col==1){
-                    selectedMemberCode = emailNameMap.get(text);
-                }
+                if(col==0) {
+                    new AlertDialog.Builder(MemberList.this)
+                            .setTitle("Title")
+                            .setMessage("Remove " + selectedMemberCode + " from member list?")
+                            .setIcon(android.R.drawable.ic_dialog_alert)
+                            .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
 
-                new AlertDialog.Builder(MemberList.this)
-                        .setTitle("Title")
-                        .setMessage("Remove "+selectedMemberCode+" from member list?")
-                        .setIcon(android.R.drawable.ic_dialog_alert)
-                        .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
-
-                            public void onClick(DialogInterface dialog, int whichButton) {
-                                if(isFirebaseConnected){
-                                    myRef.child(selectedMemberCode).setValue(null);
-                                    Toast.makeText(getApplicationContext(), "Removed "+selectedMemberCode, Toast.LENGTH_SHORT).show();
-                                    recreate();
-                                }else{
-                                    Toast.makeText(getApplicationContext(),"Check your internet connection",Toast.LENGTH_SHORT).show();
+                                public void onClick(DialogInterface dialog, int whichButton) {
+                                    if (isFirebaseConnected) {
+                                        myRef.child(selectedMemberCode).setValue(null);
+                                        Toast.makeText(getApplicationContext(), "Removed " + selectedMemberCode, Toast.LENGTH_SHORT).show();
+                                        recreate();
+                                    } else {
+                                        Toast.makeText(getApplicationContext(), "Check your internet connection", Toast.LENGTH_SHORT).show();
+                                    }
                                 }
-                            }})
-                        .setNegativeButton(android.R.string.no, null).show();
+                            })
+                            .setNegativeButton(android.R.string.no, null).show();
+                }else{
+                    Toast.makeText(getApplicationContext(),"Click on corresponding code to remove member",Toast.LENGTH_SHORT).show();
+                }
             }
         });
 

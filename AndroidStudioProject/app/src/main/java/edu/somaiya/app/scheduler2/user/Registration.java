@@ -1,13 +1,17 @@
 package edu.somaiya.app.scheduler2.user;
 
+import android.content.Context;
 import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
@@ -24,14 +28,17 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.util.HashMap;
 
+import edu.somaiya.app.scheduler2.GlobalVariables;
 import edu.somaiya.app.scheduler2.MobileVerification;
 import edu.somaiya.app.scheduler2.R;
 import edu.somaiya.app.scheduler2.Welcome;
 
-public class Registration extends AppCompatActivity {
+public class Registration extends AppCompatActivity implements AdapterView.OnItemSelectedListener {
+    String[] designationList = {GlobalVariables.professor,GlobalVariables.associate,
+            GlobalVariables.assistant,GlobalVariables.labAssistant};
     GoogleSignInClient mGoogleSignInClient;
     static int RC_SIGN_IN=101;
-    public static String name,code,email="NA",phoneNum="NA";
+    public static String name,code,designation=GlobalVariables.labAssistant,email="NA",phoneNum="NA";
     public static boolean isFirebaseConnected=false;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,6 +51,8 @@ public class Registration extends AppCompatActivity {
 
         // Build a GoogleSignInClient with the options specified by gso.
         mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
+
+        addDesignationSpinner();
     }
 
     @Override
@@ -166,7 +175,7 @@ public class Registration extends AppCompatActivity {
             user.put("code",code);
             user.put("email",email);
             user.put("mobile",phoneNum);
-            user.put("authority","user");
+            user.put("designation",designation);
 
             FirebaseDatabase database = FirebaseDatabase.getInstance();
             DatabaseReference myRef = database.getReference();
@@ -185,5 +194,25 @@ public class Registration extends AppCompatActivity {
 //                Toast.makeText(getApplicationContext(),"Check your internet connection",Toast.LENGTH_SHORT).show();
 //            }
         }
+    }
+
+    @Override
+    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+        designation = designationList[position];
+    }
+
+    @Override
+    public void onNothingSelected(AdapterView<?> parent) {
+
+    }
+    private void addDesignationSpinner() {
+        //Getting the instance of Spinner and applying OnItemSelectedListener on it
+        Spinner spin = (Spinner) findViewById(R.id.DesignationSpinner);
+        spin.setOnItemSelectedListener(this);
+
+        ArrayAdapter designationAdapter = new ArrayAdapter(this,android.R.layout.simple_spinner_item,designationList);
+        designationAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spin.setAdapter(designationAdapter);
+        spin.setSelection(3);
     }
 }

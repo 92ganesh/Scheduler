@@ -1,5 +1,6 @@
 package edu.somaiya.app.scheduler2.admin;
 
+import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -56,15 +57,19 @@ public class AddAdmin extends AppCompatActivity {
         String name = ((EditText)findViewById(R.id.Name)).getText().toString();
         String code = ((EditText)findViewById(R.id.Code)).getText().toString();
         String email = ((EditText)findViewById(R.id.Email)).getText().toString();
-        String mobile = ((EditText)findViewById(R.id.Mobile)).getText().toString();
-        if(mobile.equals(""))
+        String mobile = "+91"+((EditText)findViewById(R.id.Mobile)).getText().toString();
+        if(mobile.equals("+91"))
             mobile="NA";
 
-        if(name.equals("")||code.equals("")||email.equals("")){
-            Toast.makeText(getApplicationContext(),"Fill necessary details",Toast.LENGTH_SHORT).show();
-        }else if(Welcome.loadedMemberList&&Welcome.emailCode.containsKey(email)){
+        if(name.equals("")||code.equals("")||email.equals("")) {
+            Toast.makeText(getApplicationContext(), "Fill necessary details", Toast.LENGTH_SHORT).show();
+        }else if(!isFirebaseConnected){
+            Toast.makeText(getApplicationContext(),"Check your internet connection",Toast.LENGTH_SHORT).show();
+        }else if(!Welcome.loadedMemberList) {
+            Toast.makeText(getApplicationContext(),"Cannot fetch data from server\nTry restarting the app",Toast.LENGTH_SHORT).show();
+        }else if(Welcome.emailCode.containsKey(email)){
             Toast.makeText(getApplicationContext(),"This email has been registered already",Toast.LENGTH_SHORT).show();
-        }else if(Welcome.loadedMemberList&&(!mobile.equals("NA"))&&Welcome.mobileCode.containsKey(mobile)){
+        }else if((!mobile.equals("NA"))&&Welcome.mobileCode.containsKey(mobile)){
             Toast.makeText(getApplicationContext(),"This mobile number has been registered already",Toast.LENGTH_SHORT).show();
         }else{
             FirebaseDatabase database = FirebaseDatabase.getInstance();
@@ -75,10 +80,13 @@ public class AddAdmin extends AppCompatActivity {
             admin.put("code",code);
             admin.put("email",email);
             admin.put("mobile",mobile);
-            admin.put("authority","admin");
+            admin.put("designation","admin");
 
             if(isFirebaseConnected){
                 fireRef.child(code).setValue(admin);
+                Toast.makeText(getApplicationContext(),"new Admin added", Toast.LENGTH_SHORT).show();
+                Intent it = new Intent(getApplicationContext(), AdminMain.class);
+                startActivity(it);
             }else{
                 Toast.makeText(getApplicationContext(),getResources().getString(R.string.check_internet), Toast.LENGTH_SHORT).show();
             }

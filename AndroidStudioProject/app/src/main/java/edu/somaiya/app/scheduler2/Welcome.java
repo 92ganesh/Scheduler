@@ -57,7 +57,7 @@ public class Welcome extends AppCompatActivity {
                 for (DataSnapshot contact : contactChildren) {
                     emailCode.put((String)contact.child("email").getValue(),contact.getKey());
                     mobileCode.put((String)contact.child("mobile").getValue(),contact.getKey());
-                    codeAuthority.put(contact.getKey(),(String)contact.child("authority").getValue());
+                    codeAuthority.put(contact.getKey(),(String)contact.child("designation").getValue());
                 }
                 loadedMemberList=true;
             }

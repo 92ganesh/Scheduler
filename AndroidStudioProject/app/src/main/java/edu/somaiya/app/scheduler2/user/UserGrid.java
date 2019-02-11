@@ -34,11 +34,12 @@ import edu.somaiya.app.scheduler2.R;
 public class UserGrid extends AppCompatActivity {
     public int gridWidth=-10,gridHeigth=-10,totalSelected,rows,cols, maxInTotal=3;
     Map<String,Object> formDetails, formDetailsSecondary;
-    String rowNames="", colNames="", userSelectionStr;
+    String rowNames="", colNames="", groupLabelNames="", userSelectionStr,memberActivity;
     public DatabaseReference myRef;
     int[] selectedInRow, selectedInCol;
     boolean dataReadOnce=false, isFirebaseConnected=false, submitStatus;
     boolean[][] userSelection;
+    String[] gn;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -94,6 +95,7 @@ public class UserGrid extends AppCompatActivity {
                             selectedInCol=new int[cols];
                             rowNames = (String)contact.child("rowNames").getValue();
                             colNames = (String)contact.child("colNames").getValue();
+                            groupLabelNames = (String)contact.child("groupLabelNames").getValue();
                             if(GlobalVariables.userDesignation.equals(GlobalVariables.professor)){
                                 maxInTotal = Integer.parseInt((String)contact.child("totalSelectionProfessor").getValue() );
                             }else  if(GlobalVariables.userDesignation.equals(GlobalVariables.associate)){
@@ -105,17 +107,16 @@ public class UserGrid extends AppCompatActivity {
                             }else{
                                 maxInTotal = 0; // if any new/unknown designation has been added
                             }
-
-                            String memberActivity = (String)contact.child(GlobalVariables.currUser).getValue();
+                            memberActivity = (String)contact.child("memberActivity").child(GlobalVariables.currUser).getValue();
                             if(memberActivity!=null){
                                 Toast.makeText(getApplicationContext(),"Form has been filled already",Toast.LENGTH_SHORT).show();
                                 ((Button)findViewById(R.id.submit)).setVisibility(View.INVISIBLE);
                             }
-
                             userSelection=new boolean[rows][cols];
                             dataReadOnce=true;
                             TextView tx = findViewById(R.id.maxInTotal);  tx.setText("Number of choices required: "+maxInTotal);
                         }
+                        memberActivity = (String)contact.child("memberActivity").child(GlobalVariables.currUser).getValue();
 
                         if(GlobalVariables.userDesignation.equals(GlobalVariables.labAssistant)){
                             formDetails = (HashMap)contact.child("formTableDetailsLab").getValue();
@@ -142,21 +143,40 @@ public class UserGrid extends AppCompatActivity {
     public void makeGrid(){
         String[] rn = rowNames.split("!");
         String[] cn = colNames.split("!");
+                 gn = groupLabelNames.split("!");
 
-        for(int i=1; i<=cols; i++){
-            addButton(0,i,cn[i-1],true);
-        }
-        for(int i=1; i<=rows; i++){
-            addButton(i,0,rn[i-1],true);
-        }
-
-        for(int i=1; i<=rows; i++){
-            for(int j=1; j<=cols; j++){
-                String loc = i+","+j;
-                addButton(i,j,(String)formDetails.get(loc), false);
+        if(memberActivity!=null){
+            String[] userSelections = memberActivity.split("!");
+            for(String each:userSelections){
+                int selectedRow = Integer.parseInt(each.split(",")[0]);
+                userSelection[selectedRow-1][1] = true;
             }
         }
 
+        // fill grid
+        for(int i=0; i<cn.length; i++){
+            addButton(0,i,cn[i],true);
+        }
+        for(int i=1; i<=rows; i++){
+            addButton(i,0,gn[i-1],true);
+            addButton(i,1,rn[i-1],true);
+        }
+        for(int i=1; i<=rows; i++){
+            String loc = i+",1";
+            if(memberActivity!=null) {
+                addButton(i,2,"", false);
+            }else{
+                addButton(i,2,(String)formDetails.get(loc), false);
+            }
+//            for(int j=1; j<=cols; j++){
+//                String loc = i+","+j;
+//                if(memberActivity!=null) {
+//                    addButton(i,j,"", false);
+//                }else{
+//                    addButton(i,j,(String)formDetails.get(loc), false);
+//                }
+//            }
+        }
     }
 
     public void addButton(int r, int c,String label,boolean NamePlates){
@@ -167,38 +187,61 @@ public class UserGrid extends AppCompatActivity {
         if(!NamePlates) {
             if (label.equals("0")) {
                 btnTag.setBackground(this.getResources().getDrawable(R.drawable.red));
+                if(userSelection[r-1][c-1]){
+                    userSelection[r-1][c-1] = false;
+                    totalSelected--;
+                }
             }else if (userSelection[r-1][c-1]) {
                 btnTag.setBackground(this.getResources().getDrawable(R.drawable.green));
             }else  {
                 btnTag.setBackground(this.getResources().getDrawable(R.drawable.grey));
             }
-            btnTag.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    int id = ((int)v.getId()) - 1 ;
-                    int rowN = id/cols;
-                    int colN = id%cols;
-                    String loc = (rowN+1)+","+(colN+1);
-                    int freeCount = Integer.parseInt( (String)formDetails.get(loc));
 
-                    if(userSelection[rowN][colN]){
-                        userSelection[rowN][colN]=false;
-                        v.setBackground(getResources().getDrawable(R.drawable.grey));
-                        totalSelected--;
-                    }else if(totalSelected==maxInTotal){
-                        Toast.makeText(getApplicationContext(),"Reached selection limit",Toast.LENGTH_SHORT).show();
-                    }else if(freeCount<=0){
-                        Toast.makeText(getApplicationContext(),"No free slot available",Toast.LENGTH_SHORT).show();
-                    }else{
-                        userSelection[rowN][colN]=true;
-                        v.setBackground(getResources().getDrawable(R.drawable.green));
-                        totalSelected++;
+            if(memberActivity==null){
+                btnTag.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        int id = ((int)v.getId()) - 1 ;
+                        int rowN = id/cols;
+                        int colN = id%cols -1 ;
+                        String loc = (rowN+1)+","+(colN+1);
+                        Log.e("UserGrid","loc "+loc);
+                        int freeCount = Integer.parseInt( (String)formDetails.get(loc));
+
+                        if(userSelection[rowN][colN]){
+                            userSelection[rowN][colN]=false;
+                            v.setBackground(getResources().getDrawable(R.drawable.grey));
+                            totalSelected--;
+                        }else if(totalSelected==maxInTotal){
+                            Toast.makeText(getApplicationContext(),"Reached selection limit",Toast.LENGTH_SHORT).show();
+                        }else if(freeCount<=0){
+                            Toast.makeText(getApplicationContext(),"No free slot available",Toast.LENGTH_SHORT).show();
+                        }else{
+                            boolean preSlot=true,postSlot=true;
+                            if(rowN-1>=0&&userSelection[rowN-1][colN]){
+                                if(gn[rowN].equals(gn[rowN-1])){
+                                    preSlot=false;
+                                }
+                            }
+                            if(rowN+1<rows&&userSelection[rowN+1][colN]){
+                                if(gn[rowN].equals(gn[rowN+1])){
+                                    postSlot=false;
+                                }
+                            }
+                            if(preSlot&&postSlot){
+                                userSelection[rowN][colN]=true;
+                                v.setBackground(getResources().getDrawable(R.drawable.green));
+                                totalSelected++;
+                            }else{
+                                Toast.makeText(getApplicationContext(),"Cannot select consecutive slots",Toast.LENGTH_SHORT).show();
+                            }
+                        }
                     }
-                }
-            });
+                });
+            }
         }
 
-        btnTag.setWidth(gridWidth/6);
+        btnTag.setWidth(gridWidth/3);
         btnTag.setHeight(gridHeigth/15);
 
         GridLayout.LayoutParams param = new GridLayout.LayoutParams();
@@ -252,7 +295,6 @@ public class UserGrid extends AppCompatActivity {
                                 formDetails.put(loc, (freeCount - 1) + "");
                             }
                         }
-
                     }
                 }
             }
