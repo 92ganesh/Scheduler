@@ -28,5 +28,11 @@ Android device having minimum requirements as follows:-<br>
 • Internet Connectivity<br>
 
 <p align="center">
-  <img alt="screenshot" src="https://github.com/92ganesh/Language-Recognition/blob/master/screenshot1.JPG">
+  <img alt="screenshot" src="https://github.com/92ganesh/Scheduler/blob/master/s1.png">
+</p>
+<p align="center">
+  <img alt="screenshot" src="https://github.com/92ganesh/Scheduler/blob/master/s2.png">
+</p>
+<p align="center">
+  <img alt="screenshot" src="https://github.com/92ganesh/Scheduler/blob/master/s3.png">
 </p>
