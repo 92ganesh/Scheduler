@@ -3,11 +3,13 @@ package edu.somaiya.app.scheduler2.admin;
 import android.app.DatePickerDialog;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.content.DialogInterface;
 import android.graphics.Point;
 import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.InputType;
@@ -38,7 +40,8 @@ import edu.somaiya.app.scheduler2.R;
 public class AdminCreateForm extends AppCompatActivity {
     public DatabaseReference myRef, connectedRef ;
     public ArrayList<Integer> rowIDs, colIDs, slotLimitIDs,groupLabelIDs;
-    public int rowCount, colCount, idCount, gridWidth,gridHeigth,groupColNum,rowColNum,slotLimitColNum;
+    HashMap<String,Object> memberListMap;
+    public int rowCount, colCount, idCount, gridWidth,gridHeigth,groupColNum,rowColNum,slotLimitColNum, totalUsers;
     private int GRID_TEXT_COLOR;
     boolean isFirebaseConnected=false;
     //form attributes
@@ -98,7 +101,6 @@ public class AdminCreateForm extends AppCompatActivity {
                 rowNames+="!";
                 groupNames+="!";
             }
-
         }
 
         colNames="";
@@ -114,10 +116,17 @@ public class AdminCreateForm extends AppCompatActivity {
         totalRows=rowCount+"";
         totalCols=colCount+"";
 
+        boolean highSlotLimit=false;
         formTableDetails=new HashMap<>();
         for(int i=1;i<=rowCount;i++){
             String slotLimit = ((EditText)findViewById(slotLimitIDs.get(i-1))).getText().toString();
-            if(slotLimit.equals("")){slotLimit="0";}
+            if(slotLimit.equals("")){
+                slotLimit="0";
+            }
+            int slotLimitInt = Integer.parseInt(slotLimit);
+            if(slotLimitInt>totalUsers){
+                highSlotLimit = true;
+            }
             formTableDetails.put(i+",1",slotLimit);
         }
 
@@ -148,8 +157,31 @@ public class AdminCreateForm extends AppCompatActivity {
         form.put("formTableDetailsLab",formTableDetailsLab);
 
         if(isFirebaseConnected&&formId!=null){
-            myRef.child("formLive").child(formId).setValue(form);
-            myRef.child("globalData").child("totalForms").setValue(formId);
+            if(highSlotLimit){
+                AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+                alertDialogBuilder.setMessage("Some slot limit exceeds total registered users("+totalUsers+")");
+                alertDialogBuilder.setPositiveButton("yes",
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface arg0, int arg1) {
+                                myRef.child("formLive").child(formId).setValue(form);
+                                myRef.child("globalData").child("totalForms").setValue(formId);
+                            }
+                        });
+
+                alertDialogBuilder.setNegativeButton("No",new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        GlobalVariables.stopLoadingImage();
+                    }
+                });
+
+                AlertDialog alertDialog = alertDialogBuilder.create();
+                alertDialog.show();
+            }else{
+                myRef.child("formLive").child(formId).setValue(form);
+                myRef.child("globalData").child("totalForms").setValue(formId);
+            }
         }else{
             Toast.makeText(getApplicationContext(),"Check your internet connection",Toast.LENGTH_SHORT).show();
             GlobalVariables.stopLoadingImage();
@@ -417,6 +449,25 @@ public class AdminCreateForm extends AppCompatActivity {
                     }
                 }
 
+            }
+
+            @Override
+            public void onCancelled(DatabaseError error) {
+                // Failed to read value
+                Toast.makeText(getApplicationContext(),"cannot connect to database",Toast.LENGTH_LONG).show();
+                GlobalVariables.stopLoadingImage();
+            }
+        });
+        myRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                totalUsers=0;
+                memberListMap = (HashMap<String, Object>) dataSnapshot.child("membersList").getValue();
+                for(Map.Entry<String,Object> each : memberListMap.entrySet()){
+                    if(!((HashMap<String,String>)each.getValue()).get("designation").equals("admin")){
+                        totalUsers++;
+                    }
+                }
             }
 
             @Override

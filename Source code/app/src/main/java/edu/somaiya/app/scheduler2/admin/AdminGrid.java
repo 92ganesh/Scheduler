@@ -84,8 +84,8 @@ public class AdminGrid extends AppCompatActivity {
                 // whenever data at this location is updated.
                 // String value = dataSnapshot.getValue(String.class);
 
-                memberListMap = (HashMap<String, Object>) dataSnapshot.child("membersList").getValue();
 
+                memberListMap = (HashMap<String, Object>) dataSnapshot.child("membersList").getValue();
                 Iterable<DataSnapshot> contactChildren = dataSnapshot.child(GlobalVariables.typeForm).getChildren();
                 for (DataSnapshot contact : contactChildren) {
                     String formId= contact.getKey();
@@ -109,9 +109,9 @@ public class AdminGrid extends AppCompatActivity {
 //                            gridMat = new String[4][rows+1];
 //                        }
                         if(memberListMap!=null) {
-                            gridMat = new String[memberListMap.size()+5][rows+1];
+                            gridMat = new String[memberListMap.size()+5+5][rows+1];
                         }else{
-                            gridMat = new String[5][rows+1];
+                            gridMat = new String[5+5][rows+1];
                         }
                         makeGrid();
                     }
@@ -170,20 +170,22 @@ public class AdminGrid extends AppCompatActivity {
 
         Log.e("grid", "ran");
         boolean firstNotFilled=true;
-        // members that did not fill form
+        // members those who did not fill form
         for(Map.Entry<String,Object> entry: memberListMap.entrySet()){
             String userDesignation = ((HashMap<String,String>)entry.getValue()).get("designation");
-            if(memberActivityMap==null || !memberActivityMap.containsKey(entry.getKey())&&
-                    (userDesignation.equals(GlobalVariables.labAssistant)||userDesignation.equals(GlobalVariables.assistant)||
-                       userDesignation.equals(GlobalVariables.associate)||userDesignation.equals(GlobalVariables.professor)) ){
-                if(firstNotFilled){
-                    addButton(i,0,"",true);
-                    gridMat[i][0] = "";
-                    firstNotFilled=false; i++;
+            if(!userDesignation.equals("admin")){
+                if(memberActivityMap==null || (!memberActivityMap.containsKey(entry.getKey())&&
+                        (userDesignation.equals(GlobalVariables.labAssistant)||userDesignation.equals(GlobalVariables.assistant)||
+                                userDesignation.equals(GlobalVariables.associate)||userDesignation.equals(GlobalVariables.professor))) ){
+                    if(firstNotFilled){
+                        addButton(i,0,"",true);
+                        gridMat[i][0] = "";
+                        firstNotFilled=false; i++;
+                    }
+                    addButton(i,0,entry.getKey(),true);
+                    gridMat[i][0] = entry.getKey();
+                    i++;
                 }
-                addButton(i,0,entry.getKey(),true);
-                gridMat[i][0] = entry.getKey();
-                i++;
             }
         }
 
@@ -206,6 +208,31 @@ public class AdminGrid extends AppCompatActivity {
             gridMat[i+1][j] = formDetails.get(j+",1")+"";
             addButton(i+1,j,formDetails.get(j+",1")+"",false);
         }
+
+        addButton(i+2,0,"Designation",true);
+        gridMat[i+1][0] = "Designation";
+        addButton(i+2,1,"Limit",true);
+        gridMat[i+1][0] = "Limit";
+
+        addButton(i+3,0,"Professor",true);
+        gridMat[i+3][0] = "Professor";
+        addButton(i+3,1,""+totalSelectionProfessor,true);
+        gridMat[i+3][0] = ""+totalSelectionProfessor;
+
+        addButton(i+4,0,"Associate",true);
+        gridMat[i+4][0] = "Associate";
+        addButton(i+4,1,""+totalSelectionAssociate,true);
+        gridMat[i+4][0] = ""+totalSelectionAssociate;
+
+        addButton(i+5,0,"Assistant",true);
+        gridMat[i+5][0] = "Assistant";
+        addButton(i+5,1,""+totalSelectionAssistant,true);
+        gridMat[i+5][0] = ""+totalSelectionAssistant;
+
+        addButton(i+6,0,"Lab assist",true);
+        gridMat[i+6][0] = "Lab assist";
+        addButton(i+6,1,""+totalSelectionLabAssistant,true);
+        gridMat[i+6][0] = ""+totalSelectionLabAssistant;
     }
 
     public void addButton(int r, int c,String owner,boolean NamePlates){
