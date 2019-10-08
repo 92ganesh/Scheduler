@@ -1,5 +1,5 @@
 # SVV Scheduler
-This project is a part of internship in KJSCE
+This project is a part of an internship in KJSCE
 Aim of this project is to simplify the exam supervisor allotment process in KJSCE college. Currently this is done manually by one person who assigns duties to staff members for required time(slots). Here the staff members can not select slot of their own choice.
 So here we built an Android app where staff members can reserve slots at their own will.
 
