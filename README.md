@@ -17,7 +17,7 @@ So here we built an Android app where staff members can reserve slots at their o
 • Internet Connectivity <br>
 
 ### Software requirements:-  <br>
-• Android studio version 3.3<br> <br>
+• Android studio version 3.3 or higher<br> <br>
 
 
 ## System requirements to run the app:-<br>
